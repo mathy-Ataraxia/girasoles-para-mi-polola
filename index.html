@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Árbol de Girasoles 🌻</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;width:100%;height:100%;overflow:hidden}
+  body{
+    background:#f4f1e8;
+    font-family:Georgia,"Times New Roman",serif;
+    color:#172b20;
+  }
+  .scene{
+    position:relative;
+    width:100vw;
+    height:100vh;
+    min-height:650px;
+    overflow:hidden;
+    background:
+      radial-gradient(circle at 60% 40%,rgba(255,255,255,.65),transparent 48%),
+      #f4f1e8;
+    display:flex;
+    flex-direction:row;
+    align-items:center;
+    justify-content:space-around;
+    opacity:0;
+    transition:opacity 1.2s ease;
+  }
+  .scene.show{opacity:1}
+
+  /* ---------- Pantalla inicial: flor "Click Aquí" ---------- */
+  .intro{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#f4f1e8;
+    z-index:20;
+    cursor:pointer;
+    transition:opacity .9s ease;
+  }
+  .intro.hide{opacity:0;pointer-events:none}
+  .intro-wrap{
+    position:relative;
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+  .intro-flower{
+    width:110px;height:110px;
+    animation:introPulse 1.6s ease-in-out infinite;
+    filter:drop-shadow(0 4px 10px rgba(0,0,0,.15));
+  }
+  @keyframes introPulse{
+    0%,100%{transform:scale(1)}
+    50%{transform:scale(1.08)}
+  }
+  .intro-label{
+    font-family:Georgia,serif;
+    font-size:20px;
+    color:#222;
+    white-space:nowrap;
+    border-bottom:2px solid #222;
+    padding-bottom:2px;
+  }
+
+  /* ---------- Mensaje centrado y sincronizado ---------- */
+  .message{
+    order:1;
+    width:44%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    padding-left:3%;
+    padding-right:10px;
+  }
+  .message h1{
+    margin:0 0 18px;
+    font-size:clamp(18px,2vw,28px);
+    letter-spacing:.3px;
+    text-transform:uppercase;
+  }
+  .message p{
+    margin:0 0 14px;
+    max-width:480px;
+    font-size:clamp(14px,1.3vw,20px);
+    line-height:1.55;
+  }
+  .message .small{
+    display:block;
+    margin-top:20px;
+    font-family:"Brush Script MT","Segoe Script",cursive;
+    font-size:clamp(17px,1.7vw,25px);
+    font-style:italic;
+    opacity: 0;
+    transition: opacity 1s ease;
+  }
+  .message .small.show{
+    opacity: 1;
+  }
+  .cursor{
+    display:inline-block;
+    width:2px;
+    background:#172b20;
+    margin-left:2px;
+    animation:blink 1s step-end infinite;
+  }
+  @keyframes blink{50%{opacity:0}}
+
+  /* ---------- Árbol / corazón ---------- */
+  .tree-col{
+    order:2;
+    width:52%;
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  svg.scene-svg{width:94%;height:96%}
+
+  .ground{stroke:#222;stroke-width:2;opacity:0;transition:opacity .6s ease}
+  .ground.show{opacity:1}
+
+  .seed{
+    fill:#5b2a12;
+    opacity:0;
+    transform-box:fill-box;
+    transform-origin:center;
+  }
+  .seed.show{
+    animation:seedPop .5s ease forwards;
+  }
+  @keyframes seedPop{
+    0%{opacity:0;transform:scale(.2)}
+    100%{opacity:1;transform:scale(1)}
+  }
+
+  .trunk{
+    fill:none;
+    stroke:#176b50;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    stroke-width:20;
+  }
+
+  .tree{
+    opacity:0;
+    transform-origin:500px 750px;
+    transform:scaleY(0);
+  }
+  .tree.grow{
+    opacity:1;
+    animation:treeAppear 2.4s cubic-bezier(.2,.8,.2,1) forwards;
+  }
+  @keyframes treeAppear{
+    0%{opacity:0;transform:scaleY(0)}
+    40%{opacity:1}
+    100%{opacity:1;transform:scaleY(1)}
+  }
+
+  #heartFlowers{opacity:1}
+
+  .flower{
+    transform-box:fill-box;
+    transform-origin:center;
+    opacity:0;
+    animation:
+      flowerPop .55s cubic-bezier(.2,1.5,.4,1) forwards,
+      flowerFloat 3.8s ease-in-out infinite alternate;
+  }
+  @keyframes flowerPop{
+    from{opacity:0;transform:scale(.05) rotate(-25deg)}
+    to{opacity:1;transform:scale(1) rotate(0)}
+  }
+  @keyframes flowerFloat{
+    from{transform:translateY(0) rotate(-2deg)}
+    to{transform:translateY(-2px) rotate(2deg)}
+  }
+  .petal{fill:#f4bd20;stroke:#d99a08;stroke-width:1}
+  .center{fill:#6f3d13}
+  .center-dot{fill:#2c1909}
+
+  /* Nota personal en la esquina inferior izquierda (sin emojis) */
+  .secret-note {
+    position: absolute;
+    left: 20px;
+    bottom: 20px;
+    font-size: 11px;
+    color: rgba(23, 43, 32, 0.45);
+    font-style: italic;
+    max-width: 250px;
+    line-height: 1.2;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  .replay{
+    position:absolute;
+    right:20px;
+    bottom:20px;
+    border:1px solid rgba(0,0,0,.2);
+    background:rgba(255,255,255,.7);
+    padding:10px 15px;
+    border-radius:999px;
+    cursor:pointer;
+    font-size:14px;
+    z-index:10;
+    opacity:0;
+    transition:opacity .8s ease;
+  }
+  .replay.show{opacity:1}
+
+  @media (max-width:900px){
+    .scene{flex-direction:column;justify-content:flex-start;padding-top:20px}
+    .message{order:2;width:100%;text-align:center;padding:0 24px;margin-top:10px}
+    .tree-col{order:1;width:100%;height:52%}
+    svg.scene-svg{width:85%;height:95%}
+    .secret-note{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="intro" id="intro">
+  <div class="intro-wrap">
+    <svg class="intro-flower" viewBox="0 0 120 120">
+      <g id="introFlowerGroup"></g>
+    </svg>
+    <div class="intro-label">Click Aquí</div>
+  </div>
+</div>
+
+<div class="scene" id="scene">
+
+  <div class="message" id="message">
+    <h1 id="msgTitle"></h1>
+    <p>
+      <span id="msgBodyMain"></span><br>
+      <strong id="msgBodyBold"></strong>
+    </p>
+    <span class="small" id="msgSmall">Te amo de veras de veritas, mi morochita bonita. 💛</span>
+  </div>
+
+  <div class="tree-col">
+    <svg class="scene-svg" viewBox="0 0 1000 900" preserveAspectRatio="xMidYMid meet">
+      <line class="ground" id="ground" x1="250" y1="750" x2="750" y2="750"/>
+
+      <circle class="seed" id="seed" cx="500" cy="748" r="9"/>
+
+      <!-- Tronco ajustado para conectar más abajo con las flores -->
+      <g class="tree" id="treeGroup">
+        <path class="trunk" d="M500 750 C499 715 500 680 500 635"/>
+      </g>
+
+      <g id="heartFlowers"></g>
+    </svg>
+  </div>
+
+  <!-- Nota secreta en la esquina sin emojis -->
+  <div class="secret-note">
+    (No te imaginas la rabia que pasé haciendo este código, pero por ti lo haría mil veces más)
+  </div>
+
+  <button class="replay" id="replayBtn" onclick="restart()">↻ Reiniciar</button>
+</div>
+
+<script>
+const NS="http://www.w3.org/2000/svg";
+function el(tag,attrs={}){
+  const e=document.createElementNS(NS,tag);
+  for(const [k,v] of Object.entries(attrs)) e.setAttribute(k,v);
+  return e;
+}
+
+function sunflower(x,y,size=1){
+  const g=el("g",{class:"flower"});
+  const petalCount=10;
+  for(let i=0;i<petalCount;i++){
+    const a=(i/petalCount)*Math.PI*2;
+    const px=x+Math.cos(a)*size*8;
+    const py=y+Math.sin(a)*size*8;
+    g.appendChild(el("ellipse",{
+      class:"petal",cx:px,cy:py,rx:5.5*size,ry:10*size,
+      transform:`rotate(${a*180/Math.PI+90} ${px} ${py})`
+    }));
+  }
+  g.appendChild(el("circle",{class:"center",cx:x,cy:y,r:7*size}));
+  g.appendChild(el("circle",{class:"center-dot",cx:x,cy:y,r:2.5*size}));
+  return g;
+}
+
+/* Flor del intro */
+document.getElementById("introFlowerGroup").appendChild(sunflower(60,60,1.4));
+
+function heartPolygon(cx,cy,scale,steps){
+  const poly=[];
+  for(let i=0;i<=steps;i++){
+    const t=(i/steps)*Math.PI*2;
+    const hx=16*Math.pow(Math.sin(t),3);
+    const hy=13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t);
+    poly.push([cx+hx*scale, cy-hy*scale]);
+  }
+  return poly;
+}
+function pointInPolygon(x,y,poly){
+  let inside=false;
+  for(let i=0,j=poly.length-1;i<poly.length;j=i++){
+    const xi=poly[i][0], yi=poly[i][1];
+    const xj=poly[j][0], yj=poly[j][1];
+    const intersect=((yi>y)!==(yj>y)) && (x < (xj-xi)*(y-yi)/(yj-yi)+xi);
+    if(intersect) inside=!inside;
+  }
+  return inside;
+}
+/* HEART_CY bajado para que el corazón nazca más cerca del tronco */
+const HEART_CX=500, HEART_CY=415, HEART_SCALE=16;
+const heartPoly=heartPolygon(HEART_CX,HEART_CY,HEART_SCALE,240);
+function heartPositions(){
+  const pts=[];
+  const step=16;
+  for(let y=HEART_CY-HEART_SCALE*13;y<=HEART_CY+HEART_SCALE*18;y+=step){
+    for(let x=HEART_CX-HEART_SCALE*17;x<=HEART_CX+HEART_SCALE*17;x+=step){
+      if(pointInPolygon(x,y,heartPoly)) pts.push([x,y]);
+    }
+  }
+  return pts;
+}
+
+const heartPts=heartPositions().map((p,i)=>{
+  const jx=((i*13)%9)-4;
+  const jy=((i*7)%9)-4;
+  const s=0.62+((i%4)*0.07);
+  return {x:p[0]+jx, y:p[1]+jy, s};
+});
+heartPts.sort((a,b)=>a.y-b.y);
+
+const heartGroup=document.getElementById("heartFlowers");
+
+function growHeart(){
+  heartGroup.innerHTML="";
+  heartPts.forEach((p,idx)=>{
+    const delay=idx*0.01;
+    const f=sunflower(p.x,p.y,p.s);
+    f.style.animationDelay=`${delay}s, ${delay+0.55}s`;
+    heartGroup.appendChild(f);
+  });
+}
+
+const titleText="🌻 Feliz Día de las Flores Amarillas 🌻";
+const bodyMainText="Cada girasol que ves aquí guardado, es todo el amor que te he dedicado. Eres mi refugio, mi paz y mi alegría, la luz más hermosa que guía mis días.";
+const bodyBoldText="Por este camino y toda la eternidad, mi amor por ti es una hermosa realidad.";
+
+function typeInto(node, text, speed, onDone){
+  node.innerHTML="";
+  const cursor=el2("span","cursor");
+  node.appendChild(cursor);
+  const chars=Array.from(text);
+  let i=0;
+  const timer=setInterval(()=>{
+    if(i>=chars.length){
+      clearInterval(timer);
+      cursor.remove();
+      if(onDone) onDone();
+      return;
+    }
+    const ch=chars[i];
+    if(ch==="\n"){
+      node.insertBefore(document.createElement("br"),cursor);
+    }else{
+      node.insertBefore(document.createTextNode(ch),cursor);
+    }
+    i++;
+  },speed);
+  return timer;
+}
+function el2(tag,cls){const e=document.createElement(tag);e.className=cls;return e;}
+
+let timers=[];
+function schedule(fn,t){ const id=setTimeout(fn,t); timers.push(id); return id; }
+
+function runSequence(){
+  const ground=document.getElementById("ground");
+  const seed=document.getElementById("seed");
+  const tree=document.getElementById("treeGroup");
+  const replay=document.getElementById("replayBtn");
+  const small=document.getElementById("msgSmall");
+  const titleEl=document.getElementById("msgTitle");
+  const bodyMainEl=document.getElementById("msgBodyMain");
+  const bodyBoldEl=document.getElementById("msgBodyBold");
+
+  schedule(()=>ground.classList.add("show"),200);
+  schedule(()=>seed.classList.add("show"),700);
+  schedule(()=>tree.classList.add("grow"),1200);
+  schedule(()=>{
+    growHeart();
+  },3200);
+  schedule(()=>{
+    typeInto(titleEl,titleText,45,()=>{
+      typeInto(bodyMainEl,bodyMainText,25,()=>{
+        typeInto(bodyBoldEl,bodyBoldText,25,()=>{
+          small.classList.add("show");
+          replay.classList.add("show");
+        });
+      });
+    });
+  },8200);
+}
+
+function restart(){
+  timers.forEach(clearTimeout); timers=[];
+  const ground=document.getElementById("ground");
+  const seed=document.getElementById("seed");
+  const tree=document.getElementById("treeGroup");
+  const heart=document.getElementById("heartFlowers");
+  const replay=document.getElementById("replayBtn");
+  const small=document.getElementById("msgSmall");
+
+  ground.classList.remove("show");
+  seed.classList.remove("show");
+  tree.classList.remove("grow");
+  heart.innerHTML="";
+  replay.classList.remove("show");
+  small.classList.remove("show");
+  document.getElementById("msgTitle").innerHTML="";
+  document.getElementById("msgBodyMain").innerHTML="";
+  document.getElementById("msgBodyBold").innerHTML="";
+
+  void document.getElementById("scene").offsetWidth;
+  runSequence();
+}
+
+document.getElementById("intro").addEventListener("click",()=>{
+  const intro=document.getElementById("intro");
+  const scene=document.getElementById("scene");
+  intro.classList.add("hide");
+  scene.classList.add("show");
+  setTimeout(()=>{ intro.style.display="none"; },900);
+  runSequence();
+});
+</script>
+</body>
+</html>
